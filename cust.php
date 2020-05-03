@@ -24,6 +24,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
 <html lang="en">
 
 <head>
+
   <title>WDS Customer</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -99,8 +100,14 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
       <a class="nav-link" data-toggle="tab" href="#menu3">Insured Assets</a>
     </li>
     <li class="nav-item">
+      <a class="nav-link" data-toggle="tab" href="#menu5">Drivers</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="tab" href="#menu4">Payments</a>
+    </li>
+    <li class="nav-item">
       <form method="POST">
-        <button class="nav-link bg-dark " type="submit" name="byeo"><span><i class="fas fa-sign-out-alt"></i></span>&nbsp;&nbsp;Logout</button>
+        <button class="btn btn-dark" type="submit" name="byeo"><span><i class="fas fa-sign-out-alt"></i></span>&nbsp;&nbsp;Logout</button>
       </form>
     </li>
   </ul>
@@ -109,6 +116,292 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
   <div id="page-container">
     <div id="content-wrap">
       <div class="tab-content">
+
+        <div class="tab-pane container fade" id="menu5">
+          <p class="h3 m-3 p-3">Drivers</p>
+          <?php
+
+          if (isset($_POST['dryout'])) {
+            $sql = "INSERT into drivveh values(?,?)";
+            $sql1 = "SELECT * from driver where dlicen = ?";
+            if (($stmt = mysqli_prepare($conn, $sql)) and ($stmt1 = mysqli_prepare($conn, $sql1))) {
+              $stmt->bind_param("ss", $dlicen, $vid);
+              $stmt1->bind_param("s", $dlicen);
+              $dlicen = $_POST['drivv'];
+              $vid = $_POST['vin'];
+              $stmt1->execute();
+              $result = $stmt1->get_result();
+
+              if ($result->num_rows > 0) {
+                if (mysqli_stmt_execute($stmt)) {
+                  echo ("<SCRIPT LANGUAGE='JavaScript'>
+                    window.alert('Driver Added')
+                    window.location.href='cust.php';
+                    </SCRIPT>");
+                } else {
+                  echo ("<SCRIPT LANGUAGE='JavaScript'>
+                      window.alert('Already Added')
+                      window.location.href='cust.php';
+                      </SCRIPT>");
+                }
+              } else {
+                echo ("<SCRIPT LANGUAGE='JavaScript'>
+                              window.alert('Wrong License')
+                              window.location.href='cust.php';
+                              </SCRIPT>");
+              }
+            } else {
+              echo ("<SCRIPT LANGUAGE='JavaScript'>
+                              window.alert('Database Error')
+                              window.location.href='cust.php';
+                              </SCRIPT>");
+            }
+            mysqli_stmt_close($stmt);
+            mysqli_stmt_close($stmt1);
+            $conn->close();
+          }
+
+          $email = $_SESSION['email'];
+          $sql = "select a.vid from ains a join ins b on a.hinsid=b.hinsid where b.cmail=? order by a.vid";
+          if ($stmt = mysqli_prepare($conn, $sql)) {
+
+            mysqli_stmt_bind_param($stmt, "s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result->num_rows > 0) {
+              $i = 1;
+              while ($row = $result->fetch_assoc()) {
+                echo ("
+            
+                      <div class='row m-2 p-2'>
+                        <div class='col-md-1 bg-light m-1'>
+                            <p class='text-left'><b># " . $i . "</b></p>
+                        </div>
+                        <div class='col bg-light m-1'>
+                            <p class='text-left'><b>Vehicle Identification Number</b>  " . $row["vid"] . "</p>
+                        </div>
+                        <div class='col-md-2 text-center m-1'>
+                            <button type='button' class=' btn btn-block mybtn btn-primary tx-tfm btn-dark ' data-toggle='modal' data-target='#dryola" . $i . "'>Add Driver</button>
+                        </div>
+                      </div>
+
+                      <div class='modal' id='dryola" . $i . "'>
+
+                        <div class='modal-dialog'>
+
+                          <div class='modal-content'>
+
+                            <div class='modal-header'>
+                              <h4 class='modal-title'>Driver Add</h4>
+                              <button type='button' class='close' data-dismiss='modal'>&times;</button>
+                            </div>
+
+
+                            <div class='modal-body'>
+                              <form method='POST'>
+                                  <input type='hidden' value='" . $row['vid'] . "' name='vin' />
+                                <div class='form-group'>
+                                  <label for='drivv'>License</label>
+                                  <input type='text' minlength='10' maxlength='10' class='form-control' id='drivv' name='drivv' required>
+                                </div>
+                                <div class='col-md-12 text-center mb-3'>
+                                  <button type='submit' class=' btn btn-block mybtn btn-primary tx-tfm btn-dark ' name='dryout'>Add Driver</button>
+                                </div>
+                              </form>
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+            
+                    ");
+                $i++;
+              }
+
+
+              $result->close();
+            } else {
+              echo "<h3 class='m-3 p-3'>0 results $conn->error</h3>";
+            }
+          } else {
+            echo "Database error $conn->error";
+          }
+          // Close statement
+          mysqli_stmt_close($stmt);
+
+          $g = 1;
+          $sql1 = "select a.vid, c.dlicen, a.vmake, a.vmodel, d.dfname, d.dlname from ins b join ains a join drivveh
+           c join driver d on b.hinsid=a.hinsid and a.vid=c.vid and c.dlicen=d.dlicen where cmail=? order by a.vid";
+          if ($stmt = mysqli_prepare($conn, $sql1)) {
+            mysqli_stmt_bind_param($stmt, "s", $email);
+            $stmt->execute();
+            echo "
+            <table class='table table-striped'>
+            <thead class='bg-dark text-white'>
+              <tr>
+                <th scope='col'>#</th>
+                <th scope='col'>License</th>
+                <th scope='col'>VIN</th>
+                <th scope='col'>Driver Name</th>
+                <th scope='col'>Vehicle</th>
+              </tr>
+            </thead>
+            <tbody>";
+            $result = $stmt->get_result();
+            if ($result->num_rows > 0) {
+              while ($row = $result->fetch_assoc()) {
+                echo "
+            <tr>
+            <th scope='row'>" . $g . "</th>
+            <td>" . $row["dlicen"] . "</th>
+            <td>" . $row["vid"] . "</th>
+            <td>" . $row["dfname"] . " " . $row["dlname"] . "</td>
+            <td>" . $row["vmake"] . " " . $row["vmodel"] . "</th>
+            </tr>";
+                $g = $g + 1;
+              }
+              $result->close();
+            } else {
+              echo "<h3>0 results $conn->error</h3>";
+            }
+          } else {
+            echo "Database error $conn->error";
+          }
+          echo "</tbody></table>";
+          // Close statement
+          mysqli_stmt_close($stmt);
+
+
+
+
+          ?>
+
+        </div>
+
+        <div class="tab-pane container fade" id="menu4">
+          <p class="h3 m-3 p-3">Payment Due</p>
+          <?php
+          $email = $_SESSION['email'];
+          $sql = "select * from ins where cmail=? order by hinsid";
+          if ($stmt = mysqli_prepare($conn, $sql)) {
+
+            mysqli_stmt_bind_param($stmt, "s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result->num_rows > 0) {
+              $i = 1;
+              while ($row = $result->fetch_assoc()) {
+
+                $z = strtotime("+1 months");
+                $y = strtotime($row["iend"]);
+                $d = strtotime($row["istart"]);
+                if ($z < $y and $z >= $d) {
+                  // echo date("Y-m-d",$z);
+                  $iend = date("Y-M-d", strtotime("+1 months", $d));
+                  $iend1 = strtotime($iend);
+                  while ($iend1 <= $y and $iend1 <= $z) {
+                    echo ("
+            
+                      <div class='row m-2 p-2'>
+                        <div class='col-md-1 bg-light m-1'>
+                            <p class='text-left'><b># " . $i . "</b></p>
+                        </div>
+                        <div class='col-md-3 bg-light m-1'>
+                            <p class='text-left'><b>Insurance ID</b>  " . $row["hinsid"] . "</p>
+                        </div>
+                        <div class='col-md-3 bg-light m-1'>
+                            <p class='text-left'><b>Due Date</b>  " . $iend . "</p>
+                        </div>
+                        <div class='col-md-3 bg-light m-1'>
+                            <p class=''text-left'><b>Premium</b>  $" . $row["iprem"] . "</p>
+                        </div>
+                        <div class='col-md-1 text-center m-1'>
+                            <button type='button' class=' btn btn-block mybtn btn-primary tx-tfm btn-dark ' data-toggle='modal' data-target='#payola'>Add</button>
+                        </div>
+                      </div>
+
+                      <div class='modal' id='payola'>
+
+                        <div class='modal-dialog'>
+
+                          <div class='modal-content'>
+
+                            <div class='modal-header'>
+                              <h4 class='modal-title'>Payment Options</h4>
+                              <button type='button' class='close' data-dismiss='modal'>&times;</button>
+                            </div>
+
+
+                            <div class='modal-body'>
+
+                              
+
+                                <div class='form-check-inline'>
+
+                                  <div class='form-check-inline'>
+                                    <label class='form-check-label'>
+                                      <input type='radio' class='form-check-input' id='ch' name='payo' value='check' required>Check
+                                    </label>
+                                  </div>
+
+                                  <div class='form-check-inline'>
+                                    <label class='form-check-label'>
+                                      <input type='radio' class='form-check-input' id='cr' name='payo' value='credit'>Credit
+                                    </label>
+                                  </div>
+
+                                  <div class='form-check-inline'>
+                                    <label class='form-check-label'>
+                                      <input type='radio' class='form-check-input' id='pa' name='payo' value='paypal'>Paypal
+                                    </label>
+                                  </div>
+
+                                  <div class='form-check-inline'>
+                                    <label class='form-check-label'>
+                                      <input type='radio' class='form-check-input' id='deb' name='payo' value='debit'>Debit
+                                    </label>
+                                  </div>
+
+                                </div>
+
+                                <br /><br />
+                                <div class='col-md-12 text-center mb-3'>
+                                  <button type='button' class=' btn btn-block mybtn btn-primary tx-tfm btn-dark ' name='payout'>Proceed Payment</button>
+                                </div>
+
+                              
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+            
+                    ");
+
+                    $iend = date("Y-M-d", strtotime("+1 months", $iend1));
+                    $iend1 = strtotime($iend);
+                    $i++;
+                  }
+                }
+              }
+
+              $result->close();
+            } else {
+              echo "<h3 class='m-3 p-3'>0 results $conn->error</h3>";
+            }
+          } else {
+            echo "Database error $conn->error";
+          }
+          // Close statement
+          mysqli_stmt_close($stmt);
+          ?>
+
+        </div>
         <div class="tab-pane container fade" id="menu3">
           <div class="row">
             <div class="m-3 p-3 col-md-5">
@@ -116,14 +409,14 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
               <?php
               $email = $_SESSION['email'];
               $g = 1;
-              $sql1 = "select a.hinsid,a.istart,a.iprem,b.hid from ins a join hins b on a.hinsid=b.hinsid where a.cmail=?";
+              $sql1 = "select a.hinsid,a.istart,a.iprem,b.hid from ins a join hins b on a.hinsid=b.hinsid where a.cmail=? order by a.hinsid";
               if ($stmt = mysqli_prepare($conn, $sql1)) {
 
                 mysqli_stmt_bind_param($stmt, "s", $email);
                 $stmt->execute();
                 echo ("
             <table class='table table-striped'>
-            <thead class='bg-secondary text-white'>
+            <thead class='bg-dark text-white'>
               <tr>
                 <th scope='col'>#</th>
                 <th scope='col'>Insurance ID</th>
@@ -143,14 +436,14 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
             <td>" . $row["hinsid"] . "</th>
             <td>" . $row["hid"] . "</th>
             <td>" . $row["istart"] . "</th>
-            <td>" . $row["iprem"] . "</td>
+            <td>$" . $row["iprem"] . "</td>
             </tr>");
                     $g = $g + 1;
                   }
                   //$result->free();
                   $result->close();
                 } else {
-                  echo "<h1>0 results $conn->error</h1>";
+                  echo "<h3>0 results $conn->error</h3>";
                 }
               } else {
                 echo "Database error $conn->error";
@@ -170,20 +463,21 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
               <?php
               $email = $_SESSION['email'];
               $g = 1;
-              $sql1 = "select a.hinsid,a.istart,a.iprem,b.vid from ins a join ains b on a.hinsid=b.hinsid where a.cmail=?";
+              $sql1 = "select a.hinsid,a.istart,a.iprem,b.vid,b.vmake,b.vmodel from ins a join ains b on a.hinsid=b.hinsid where a.cmail=? order by a.hinsid";
               if ($stmt = mysqli_prepare($conn, $sql1)) {
 
                 mysqli_stmt_bind_param($stmt, "s", $email);
                 $stmt->execute();
                 echo "
             <table class='table table-striped'>
-            <thead class='bg-secondary text-white'>
+            <thead class='bg-dark text-white'>
               <tr>
                 <th scope='col'>#</th>
                 <th scope='col'>Insurance ID</th>
                 <th scope='col'>Vehicle Identification Number</th>
                 <th scope='col'>Insurance Start</th>
                 <th scope='col'>Insurance Premium</th>
+                <th scope='col'>Vehicle</th>
               </tr>
             </thead>
             <tbody>";
@@ -196,15 +490,14 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
             <td>" . $row["hinsid"] . "</th>
             <td>" . $row["vid"] . "</th>
             <td>" . $row["istart"] . "</th>
-            <td>" . $row["iprem"] . "</td>
+            <td>$" . $row["iprem"] . "</td>
+            <td>" . $row["vmake"] . " " . $row["vmodel"] . "</td>
             </tr>";
                     $g = $g + 1;
                   }
-//                  echo "</tbody></table>";
-                  //$result->free();
                   $result->close();
                 } else {
-                  echo "<h1>0 results $conn->error</h1>";
+                  echo "<h3>0 results $conn->error</h3>";
                 }
               } else {
                 echo "Database error $conn->error";
@@ -239,7 +532,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                 <div class="form-row">
                   <div class="form-group col-md-4">
                     <label for="hid">House Number</label>
-                    <input type="text" name="hid" class="form-control" id="hid" placeholder="Enter House Number" required>
+                    <input type="text" minlength="10" maxlength="10" name="hid" class="form-control" id="hid" placeholder="Enter House Number" required>
                   </div>
                   <div class="form-group col-md-4">
                     <label for="purval">House Value</label>
@@ -293,6 +586,11 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                 <div class="form-check-inline">
                   <label class="form-check-label">
                     <input type="radio" class="form-check-input" id="swim4" name="swim" value="U">Underground
+                  </label>
+                </div>
+                <div class="form-check-inline">
+                  <label class="form-check-label">
+                    <input type="radio" class="form-check-input" id="swim5" name="swim" value="I">Indoor
                   </label>
                 </div>
 
@@ -354,7 +652,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                 </div>
 
                 <div class="col-md-12 text-center mb-3">
-                  <button type="submit" class=" btn btn-block mybtn btn-primary tx-tfm bg-dark" name="hadd">Add Insurance</button>
+                  <button type="submit" class=" btn btn-block mybtn btn-primary tx-tfm btn-dark" name="hadd">Add Insurance</button>
                 </div>
 
 
@@ -368,7 +666,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                 <div class="form-row">
                   <div class="form-group col-md-6">
                     <label for="vin">Vehicle Identification Number</label>
-                    <input type="text" name="vin" class="form-control" id="vin" placeholder="Enter VIN" required>
+                    <input type="text" minlength="10" maxlength="10" name="vin" class="form-control" id="vin" placeholder="Enter VIN" required>
                   </div>
                   <div class="form-group col-md-6">
                     <label for="vmake">Vehicle Make</label>
@@ -409,7 +707,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                 </div>
                 <br /><br />
                 <div class="col-md-12 text-center mb-3">
-                  <button type="submit" class=" btn btn-block mybtn btn-primary tx-tfm bg-dark " name="aadd">Add Insurance</button>
+                  <button type="submit" class=" btn btn-block mybtn btn-primary tx-tfm btn-dark " name="aadd">Add Insurance</button>
                 </div>
 
               </form>
@@ -418,6 +716,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
           </div>
         </div>
         <div class="tab-pane container fade" id="menu1">
+        <p class="h3 m-3 p-3">Current Insurances</p>
           <div class='row'>
             <?php
 
@@ -432,15 +731,12 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
               return $row;
             }
 
-            // if(isset($_POST['logg'])){
-            //     echo "<script>alert('".$_POST["premi"]."<------Premium     Insurance ID--->".$_POST["hinsid"]."');</script>";
-            // }
-
             if (isset($_POST["logg"])) {
 
               $h = $_POST["hinsid"];
               $prem = $_POST["premi"];
               $c = 0;
+
               $sql = "INSERT INTO ains (hinsid,vid,vmake,vmodel,vyear,vterm,vstat) VALUES (?, ?, ?, ?, ?, ?, ?);";
               $sql2 = "SELECT vid from ains where vid=?";
               $sql1 = "UPDATE ins SET iprem = ? where hinsid=?;";
@@ -463,7 +759,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                     $c = 1;
                   } else {
                     echo ("<SCRIPT LANGUAGE='JavaScript'>
-                  window.alert('Insurance Failed')
+                  window.alert('Automobile Already Insured')
                   window.location.href='cust.php';
                   </SCRIPT>");
                   }
@@ -492,12 +788,115 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
 
                   if (mysqli_stmt_execute($stmnt)) {
                     echo ("<SCRIPT LANGUAGE='JavaScript'>
-                        window.alert('Insurance Added Old Premium was $$prem, New Premium is$$iprem, numrows is $result->num_rows')
+                        window.alert('Insurance Added Old Premium was $$prem, New Premium is$$iprem')
                         window.location.href='cust.php';
                         </SCRIPT>");
                   } else {
                     echo ("<SCRIPT LANGUAGE='JavaScript'>
-                window.alert('Insurance Failed')
+                window.alert('House Already Insured')
+                window.location.href='cust.php';
+                </SCRIPT>");
+                  }
+                } else {
+
+                  session_destroy();
+
+                  echo ("<SCRIPT LANGUAGE='JavaScript'>
+                window.alert('Error connecting to database')
+                window.location.href='index.php';
+                </SCRIPT>");
+                }
+              }
+
+              mysqli_stmt_close($stmt);
+              mysqli_stmt_close($stmnt);
+              mysqli_stmt_close($stmnt1);
+
+              mysqli_close($conn);
+            }
+
+            // if(isset($_POST['hadda'])){
+            //     echo "<script>alert('".$_POST["premi"]."<------Premium     Insurance ID--->".$_POST["hinsid"]."');</script>";
+            // }
+
+            if (isset($_POST["hadda"])) {
+
+              $h = $_POST["hinsid"];
+              $prem = $_POST["premi"];
+              $c = 0;
+
+              $sql = "INSERT INTO hins (hinsid,hid,purval,harea,htype,swim,basement,hsec,afire,purdate,iterm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+              $sql2 = "SELECT hid from hins where hid=?";
+              $sql1 = "UPDATE ins SET iprem = ? where hinsid=?;";
+
+              if (($stmt = mysqli_prepare($conn, $sql)) and ($stmnt1 = mysqli_prepare($conn, $sql2))) {
+
+                mysqli_stmt_bind_param($stmt, "sssssssssss", $hinsid, $hid, $purval, $harea, $htype, $swim, $basement, $hsec, $afire, $purdate, $hterm);
+                mysqli_stmt_bind_param($stmnt1, "s", $vid);
+                $hinsid = $h;
+                $hid = $_POST['hid'];
+                $purval = $_POST['purval'];
+                $harea = $_POST['harea'];
+                $htype = $_POST['htype'];
+                $swim = $_POST['swim'];
+                $basement = $_POST['basement'];
+                $hsec = $_POST['hsec'];
+                $afire = $_POST['afire'];
+                $purdate = $_POST['purdate'];
+                $hterm = $_POST['hterm'];
+
+                $stmnt1->execute();
+                $result = $stmnt1->get_result();
+                if ($result->num_rows <= 0) {
+                  if (mysqli_stmt_execute($stmt)) {
+                    $c = 1;
+                  } else {
+                    echo ("<SCRIPT LANGUAGE='JavaScript'>
+                  window.alert('House Already Insured')
+                  window.location.href='cust.php';
+                  </SCRIPT>");
+                  }
+                } else {
+                  echo ("<SCRIPT LANGUAGE='JavaScript'>
+                        window.alert('House Already Insured')
+                        window.location.href='cust.php';
+                        </SCRIPT>");
+                }
+              } else {
+
+                session_destroy();
+
+                echo ("<SCRIPT LANGUAGE='JavaScript'>
+              window.alert('Error connecting to database')
+              window.location.href='index.php';
+              </SCRIPT>");
+              }
+              if ($c == 1) {
+                if ($stmnt = mysqli_prepare($conn, $sql1)) {
+
+                  mysqli_stmt_bind_param($stmnt, "ss", $iprem, $hinsid);
+
+                  $hinsid = $h;
+                  $baser = $purval / $harea;
+                  if ($swim = 'O') {
+                    $pool = 1;
+                  } else if ($swim = 'U') {
+                    $pool = 2;
+                  } else if ($swim = 'M') {
+                    $pool = 3;
+                  } else {
+                    $pool = 0;
+                  }
+                  $iprem = $prem + $baser * (1 + ($pool + $basement + $hsec + $afire) / 10) * (60 / $hterm);
+
+                  if (mysqli_stmt_execute($stmnt)) {
+                    echo ("<SCRIPT LANGUAGE='JavaScript'>
+                        window.alert('Insurance Added Old Premium was $$prem, New Premium is$$iprem')
+                        window.location.href='cust.php';
+                        </SCRIPT>");
+                  } else {
+                    echo ("<SCRIPT LANGUAGE='JavaScript'>
+                window.alert('House Already Insured')
                 window.location.href='cust.php';
                 </SCRIPT>");
                   }
@@ -529,30 +928,44 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
               $result = $stmt->get_result();
               if ($result->num_rows > 0) {
 
-                $i=1;
+                $i = 1;
+
+
+                echo "
+                <table class='table table-striped'>
+                <thead class='bg-dark text-white'>
+                  <tr>
+                    <th scope='col'>Insurance ID</th>
+                    <th scope='col'>Start</th>
+                    <th scope='col'>End</th>
+                    <th scope='col'>Premium</th>
+                    <th scope='col'>Type</th>
+                    <th scope='col'>Add More</th>
+                  </tr>
+                </thead>
+                <tbody>";
+
+
                 // output data of each row
                 while ($row = $result->fetch_assoc()) {
 
                   $row = changeFormat($row);
 
                   if ($row['itype'] == "Auto Insurance") {
+
                     echo ("
-                    <div class='card col-sd-4 m-3 p-3 bg-light'>
-                      <div class='card-body bg-secondary text-white'>
-                        <h5 class='card-title'>" . $row["hinsid"] . "</h5>
-                      </div>
+                    
+                    <tr>
+            <th scope='row'>" . $row["hinsid"] . "</th> 
+            <td>" . $row["istart"] . "</td>
+            <td>"  .$row["iend"] . "</td>
+                        <td>$" . $row["iprem"] . "</td>
+                        <td>" . $row["itype"] . "</td>
+                        <td> 
+                        <a data-toggle='modal' data-target='#extra" . $i . "'>Add Automobile</a>
+                        </td>
               
-                      <ul class='list-group list-group-flush'>
-                        <li class='list-group-item'><h6>Insurance Start</h6><p>" . $row["istart"] . "</p></li>
-                        <li class='list-group-item'><h6>Insurance End</h6><p>" . $row["iend"] . "</p></li>
-                        <li class='list-group-item'><h6>Insurance Premium</h6><p>$" . $row["iprem"] . "</p></li>
-                        <li class='list-group-item'><h6>Insurance Type</h6><p>" . $row["itype"] . "</p></li>
-                      </ul>
-                      <div class='card-body'>
-                        <a data-toggle='modal' data-target='#extra".$i."'>Add Automobile</a>
-                      </div>
-              
-                      <div class='modal fade' id='extra".$i."'>
+                      <div class='modal fade' id='extra" . $i . "'>
                         <div class='modal-dialog modal-lg'>
                           <div class='modal-content'>
                             <div class='modal-header'>
@@ -566,7 +979,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                               <div class='form-row'>
                               <div class='form-group col-md-6'>
                                 <label for='vin'>Vehicle Identification Number</label>
-                                <input type='text' name='vin' class='form-control' id='vin' placeholder='Enter VIN' required>
+                                <input type='text' minlength='10' maxlength='10' name='vin' class='form-control' id='vin' placeholder='Enter VIN' required>
                               </div>
                               <div class='form-group col-md-6'>
                                 <label for='vmake'>Vehicle Make</label>
@@ -608,7 +1021,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                             <br /><br />
               
                                   <div class='col-md-12 text-center '>
-                                    <button type='submit' class=' btn btn-block mybtn btn-primary tx-tfm text-white bg-dark' name='logg'>Add Automobile</button>
+                                    <button type='submit' class=' btn btn-block mybtn btn-primary tx-tfm text-white btn-dark' name='logg'>Add Automobile</button>
                                   </div>
                                 
                               </form>
@@ -616,38 +1029,20 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                           </div>
                         </div>
                       </div>
-              
-                    </div>");
+              ");
                   } else {
                     echo ("
-                      <div class='card col-sd-4 m-3 p-3 bg-light'>
-                          <div class='card-body bg-secondary text-white'>
-                              <h5 class='card-title'>" . $row["hinsid"] . "</h5>
-                          </div>
+                    <tr>
+                    <th scope='row'>" . $row["hinsid"] . "</th> 
+                    <td>" . $row["istart"] . "</td>
+                    <td>"  .$row["iend"] . "</td>
+                                <td>$" . $row["iprem"] . "</td>
+                                <td>" . $row["itype"] . "</td>
+                                <td> 
+                                <a data-toggle='modal' data-target='#extra" . $i . "'>Add House</a>
+                                </td>
                       
-                          <ul class='list-group list-group-flush'>
-                              <li class='list-group-item'>
-                                  <h6>Insurance Start</h6>
-                                  <p>" . $row["istart"] . "</p>
-                              </li>
-                              <li class='list-group-item'>
-                                  <h6>Insurance End</h6>
-                                  <p>" . $row["iend"] . "</p>
-                              </li>
-                              <li class='list-group-item'>
-                                  <h6>Insurance Premium</h6>
-                                  <p>$" . $row["iprem"] . "</p>
-                              </li>
-                              <li class='list-group-item'>
-                                  <h6>Insurance Type</h6>
-                                  <p>" . $row["itype"] . "</p>
-                              </li>
-                          </ul>
-                          <div class='card-body'>
-                              <a data-toggle='modal' data-target='#extra1'>Add House</a>
-                          </div>
-                      
-                          <div class='modal fade' id='extra1'>
+                          <div class='modal fade' id='extra" . $i . "'>
                               <div class='modal-dialog modal-lg'>
                                   <div class='modal-content'>
                                       <div class='modal-header'>
@@ -664,7 +1059,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                                               <div class='form-row'>
                                                   <div class='form-group col-md-4'>
                                                       <label for='hid'>House Number</label>
-                                                      <input type='text' name='hid' class='form-control' id='hid' placeholder='Enter House Number' required>
+                                                      <input type='text' minlength='10' maxlength='10' name='hid' class='form-control' id='hid' placeholder='Enter House Number' required>
                                                   </div>
                                                   <div class='form-group col-md-4'>
                                                       <label for='purval'>House Value</label>
@@ -718,6 +1113,11 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                                               <div class='form-check-inline'>
                                                   <label class='form-check-label'>
                                                       <input type='radio' class='form-check-input' id='swim4' name='swim' value='U'>Underground
+                                                  </label>
+                                              </div>
+                                              <div class='form-check-inline'>
+                                                  <label class='form-check-label'>
+                                                      <input type='radio' class='form-check-input' id='swim4' name='swim' value='I'>Indoor
                                                   </label>
                                               </div>
                       
@@ -779,7 +1179,7 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                                               </div>
                       
                                               <div class='col-md-12 text-center mb-3'>
-                                                  <button type='submit' class=' btn btn-block mybtn btn-primary tx-tfm bg-dark' name='hadda'>Add House</button>
+                                                  <button type='submit' class=' btn btn-block mybtn btn-primary tx-tfm btn-dark' name='hadda'>Add House</button>
                                               </div>
                       
                       
@@ -788,18 +1188,18 @@ $data1 = mysqli_query($conn, "SELECT iprem, hinsid FROM ins WHERE cmail='$email'
                                   </div>
                               </div>
                           </div>
-                      
-                      </div>");
+                      ");
                   }
                   $i++;
                 }
                 $result->close();
               } else {
-                echo "<h1 class='m-3 p-3'>No Insurance Available $conn->error</h1>";
+                echo "<h3 class='m-3 p-3'>No Insurance Available $conn->error</h3>";
               }
             } else {
               echo "Database error $conn->error";
             }
+            echo "</tbody></table>";
             mysqli_stmt_close($stmt);
 
             ?>

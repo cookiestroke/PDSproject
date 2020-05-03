@@ -79,7 +79,7 @@ if (isset($_SESSION['email'])) {
               <input type="password" name="password1" id="password1" class="form-control" placeholder="Enter Password" required>
             </div>
             <div class="col-md-12 text-center ">
-              <button type="submit" class=" btn btn-block mybtn btn-primary tx-tfm text-white bg-dark" name="logga">Login</button>
+              <button type="submit" class=" btn btn-block mybtn btn-primary tx-tfm text-white btn-dark" name="logga">Login</button>
             </div>
           </form>
         </div>
@@ -131,7 +131,7 @@ if (isset($_SESSION['email'])) {
 
             <div class="form-group">
               <label for="password">Password</label>
-              <input type="password" name="password" id="password" class="form-control" placeholder="Enter Password" required>
+              <input type="password" name="password" minlength="8"  id="password" class="form-control" placeholder="Enter Password Mininum 8 Characters" required>
             </div>
 
             <b>Maritial Status</b> &nbsp;&nbsp;&nbsp;&nbsp;
@@ -170,7 +170,7 @@ if (isset($_SESSION['email'])) {
             <br /> <br />
 
             <div class="col-md-12 text-center mb-3">
-              <button type="submit" class=" btn btn-block mybtn btn-primary tx-tfm text-white bg-dark" name="regsub">Register</button>
+              <button type="submit" class=" btn btn-block mybtn btn-primary tx-tfm text-white btn-dark" name="regsub">Register</button>
             </div>
 
 
@@ -193,7 +193,7 @@ if (isset($_SESSION['email'])) {
     if ($stmt = mysqli_prepare($conn, $sql)) {
       mysqli_stmt_bind_param($stmt, "ss", $email, $password);
       $email = $_POST['email1'];
-      $password = $_POST['password1'];
+      $password = md5($_POST['password1']);
       $stmt->execute();
       $result = $stmt->get_result();
       if ($result->num_rows > 0) {
@@ -239,7 +239,7 @@ if (isset($_SESSION['email'])) {
       $last_name = $_POST['lastname'];
       $email = $_POST['email'];
       $zipcode = $_POST['czipcode'];
-      $password = $_POST['password'];
+      $password = md5($_POST['password']);
       $marry = $_POST['optradio'];
       $gender = $_POST['optradio1'];
 

@@ -36,21 +36,21 @@
                 <img src="ny.jpg" alt="First Slide">
                 <div class="carousel-caption h3 font-weight-bold">
                     <h1 class="font-weight-bold" style="color:black;">We Do Secure</h3>
-                    <p style="color:black;">Insuring Your Future… Today</p>
+                        <p style="color:black;">Insuring Your Future… Today</p>
                 </div>
             </div>
             <div class="carousel-item">
                 <img src="ca.jpg" alt="Second Slide">
                 <div class="carousel-caption h3 font-weight-bold">
                     <h1 class="font-weight-bold" style="color:black;">We Do Secure</h3>
-                    <p style="color:black;">It’s fast, free, and secure</p>
+                        <p style="color:black;">It’s fast, free, and secure</p>
                 </div>
             </div>
             <div class="carousel-item">
                 <img src="la.jpg" alt="Third Slide">
                 <div class="carousel-caption h3 font-weight-bold">
                     <h1 class="font-weight-bold" style="color:black;">We Do Secure</h3>
-                    <p style="color:black;">Apply for a home insurance or an auto insurance at affordable rates</p>
+                        <p style="color:black;">Apply for a home insurance or an auto insurance at affordable rates</p>
                 </div>
             </div>
         </div>

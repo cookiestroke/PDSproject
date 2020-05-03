@@ -81,7 +81,7 @@
             </form>
 
             <div class="text-center text-md-left">
-                <a class="btn btn-primary" href="#">Send</a>
+                <a class="btn btn-primary btn-dark" href="#">Send</a>
             </div>
             <div class="status"></div>
         </div>
