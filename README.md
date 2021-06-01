@@ -1,6 +1,16 @@
 # PDSproject
 Insurance website with backend as a part of Principles of Database System Course
 
+http://wedosecure.great-site.net
+
+**Login info:**
+<pre>Uname - a@a.a
+Password - 123456789</pre>
+
+**Login to the admin portal via** http://wedosecure.great-site.net/admin.php
+<pre>Uname - admin@wds.com
+Password - 123456789</pre>
+
 ### ENVIRONMENTS USED
 
 **WAMP StackServer Configuration**:
